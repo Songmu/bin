@@ -1,0 +1,7 @@
+#!/usr/bin/env perl
+use 5.014;
+use warnings;
+use utf8;
+
+my @files = grep {/\.go$/} grep {chomp && /\.go$/} `git ls-files --others; git diff --name-only`;
+exec('lazy-goimports', @files);

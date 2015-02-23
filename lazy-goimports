@@ -1,0 +1,64 @@
+#!/usr/bin/env perl
+use 5.014;
+use warnings;
+use Errno qw(:POSIX);
+use File::Spec;
+use Digest::MD5 qw/md5_hex/;
+
+my $base = '/tmp/.lazy-goimports';
+unless (mkdir $base or $! == EEXIST ){
+    die "can't create $base: $!\n";
+}
+
+my @files = map { +{ name => $_ } } grep { /\.go$/ } @ARGV;
+my @target_files;
+for my $file (@files) {
+    unless (-e $file->{name}) {
+        warn "$file->{name}: no such file or directory\n";
+        next;
+    }
+    $file->{cache_file} = cache($file->{name});
+
+    if (! -e $file->{cache_file} || file_digest($file->{name}) ne slurp($file->{cache_file}) ) {
+       push @target_files, $file;
+    }
+}
+
+if (@target_files) {
+    system('goimports', '-w', map {$_->{name}} @target_files);
+    for my $file (@target_files) {
+        spew($file->{cache_file}, file_digest($file->{name}));
+    }
+}
+
+sub cache {
+    my $file = shift;
+    my $cache_file = File::Spec->rel2abs($file);
+    $cache_file =~ s!^/!!;
+    $cache_file =~ s!/!-----!g;
+    File::Spec->catfile($base, $cache_file);
+}
+
+sub file_digest {
+    my $file = shift;
+
+    my $content = slurp($file);
+    md5_hex($content);
+}
+
+sub slurp {
+    my $file = shift;
+    my $content = do {
+        local $/;
+        open my $fh, '<', $file or die $!;
+        <$fh>
+    };
+    chomp($content);
+    $content;
+}
+
+sub spew {
+    my ($file, $content) = @_;
+    open my $fh, '>', $file or die $!;
+    print $fh $content;
+}

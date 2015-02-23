@@ -1,0 +1,13 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use 5.010;
+
+my $current_branch = `git rev-parse --abbrev-ref HEAD`;
+if (my ($issue_num) = $current_branch =~ /iss([0-9]+)/) {
+    !system(qw/hub browse --/, "issues/$issue_num") or die $!;
+}
+else {
+    warn "can't resolve issue number from branch name\n";
+}
+

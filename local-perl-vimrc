@@ -1,0 +1,2 @@
+#!/bin/sh
+echo 'let &l:path = "extlib/lib/perl5" . "," . "lib" . ", " . &l:path'

@@ -1,0 +1,14 @@
+#!/usr/bin/env perl
+use 5.014;
+use utf8;
+use Cwd;
+use Time::Piece;
+
+my $dirname = localtime->strftime('work-%Y%m%d-%H%M%S');
+my $path    = "$ENV{HOME}/temporary/$dirname";
+
+
+# !system $ENV{SHELL} or die $!;
+!system 'mkdir', $path or die $!;
+chdir $path or die $!;
+system $ENV{SHELL};

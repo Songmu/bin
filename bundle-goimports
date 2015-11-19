@@ -3,5 +3,5 @@ use 5.014;
 use warnings;
 use utf8;
 
-my @files = grep {/\.go$/} grep {chomp && /\.go$/} `git ls-files --others; git diff --name-only`;
+my @files = grep {/\.go$/} grep {chomp && /\.go$/} `git ls-files --others; git diff --name-only --relative`;
 exec('lazy-goimports', @files);

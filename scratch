@@ -1,12 +1,37 @@
 #!/usr/bin/env perl
 use 5.014;
+use warnings;
 use utf8;
 use Cwd;
+use File::Path qw/rmtree/;
 use Time::Piece;
 
-my $dirname = localtime->strftime('work-%Y%m%d-%H%M%S');
-my $path    = "$ENV{HOME}/temporary/$dirname";
+my $subcmd = shift(@ARGV) // 'main';
+my $sub = __PACKAGE__->can("do_$subcmd");
+unless ($sub) {
+    die "subcommand for $subcmd not defined\n";
+}
+my $scratch_path = "$ENV{HOME}/temporary";
+$sub->();
 
-!system 'mkdir', $path or die $!;
-chdir $path or die $!;
-system $ENV{SHELL};
+sub do_main {
+    my $dirname = localtime->strftime('work-%Y%m%d-%H%M%S');
+    my $path    = "$scratch_path/$dirname";
+
+    !system 'mkdir', $path or die $!;
+    chdir $path or die $!;
+    system $ENV{SHELL};
+}
+
+sub do_clear {
+    my $reg = quotemeta $scratch_path;
+       $reg .= '/work-[0-9]{8}-[0-9]{6}';
+       $reg = qr/^$reg$/;
+    my $dir = getcwd;
+
+    if ($dir !~ $reg) {
+        die "$dir is not scratch directory\n";
+    }
+    chdir "$ENV{HOME}";
+    rmtree $dir or die $!;
+}

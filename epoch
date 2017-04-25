@@ -1,0 +1,12 @@
+#!/usr/bin/env perl
+use 5.016;
+use warnings;
+use HTTP::Date qw/time2str str2time/;
+
+my $arg = join ' ', @ARGV;
+
+if ($arg =~ /\A[0-9]+\z/) {
+    say time2str($arg);
+} else {
+    say str2time($arg);
+}

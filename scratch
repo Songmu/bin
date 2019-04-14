@@ -32,6 +32,8 @@ sub do_clear {
     if (my ($d) = $dir =~ $reg) {
         chdir "$ENV{HOME}";
         rmtree $d or die $!;
+        my $ppid = getppid;
+        kill TERM => $ppid;
     }
     else {
         die "$dir is not a scratch directory\n";

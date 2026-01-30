@@ -1,0 +1,53 @@
+#!/usr/bin/env perl
+
+=head1 zt2md
+
+The zoom transcript to markdown converter.
+
+=cut
+
+use v5.34;
+use strict;
+use warnings;
+use utf8;
+
+say format_md(*STDIN);
+
+sub format_md {
+    my $fh = shift;
+
+    my $md = '';
+    my $current_speaker = '';
+    my $current_section = '';
+
+
+    while (my $line = <$fh>) {
+        chomp $line;
+        next unless $line;
+
+        if ($line =~ /^\[(.*)\] ([0-9]{2}:[0-9]{2}:[0-9]{2})$/) {
+            my $speaker = $1;
+            my $time = $2;
+            if ($speaker eq $current_speaker) {
+                next;
+            }
+            $current_speaker = $speaker;
+            # speaker changed and flush buffer
+            if ($current_section ne '') {
+                $md .= "$current_section\n\n";
+                $current_section = '';
+            }
+            $md .= "### $speaker <time>$time</time>\n\n";
+            $current_section = '';
+            next;
+        }
+        if ($current_section) {
+            $current_section .= " ";
+        }
+        $current_section .= $line;
+    }
+    if ($current_section ne '') {
+        $md .= "$current_section";
+    }
+    return $md;
+}
